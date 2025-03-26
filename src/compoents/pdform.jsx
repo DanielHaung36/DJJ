@@ -113,7 +113,7 @@ const inspectionItemsInit = [
 
 const Form = () => {
   const [invoiceId, setInvoiceId] = useState("INV-"); // 订单编号初始化为 INV-
-  const [pdPerson, setPdPerson] = useState("DJJ"); // PD人员初始化为DJJ
+  const [pdPerson, setPdPerson] = useState(""); // PD人员初始化为DJJ
   const [inspectionItems, setInspectionItems] = useState(inspectionItemsInit);
   const [pdfReady, setPdfReady] = useState(false); // 控制PDF生成状态
   const pdfLinkRef = useRef(null); // 添加这行
