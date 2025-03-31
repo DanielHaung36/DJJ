@@ -1,7 +1,7 @@
 import React from 'react'
 import PDFDownloadLink from "@react-pdf/renderer"
 import Quixote from './genneratepdf'
-export default function pdfdownload() {
+export default function PdfDownload() {
   return (
     <div>
     <PDFDownloadLink document={<Quixote />} fileName="somename.pdf">
