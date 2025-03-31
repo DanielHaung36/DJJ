@@ -83,7 +83,7 @@ const inspectionItemsInit = [
     code: "4.6",
     photo: [],
   },
-  { name: "发动机机油量符合要求，油位是否正常。", code: "4.1", photo: [] },
+  { name: "发动机机油量符合要求，位于上下标线之间，油位是否正常。", code: "4.1", photo: [] },
   {
     name: "发动机启动平稳，无机油泄漏，皮带张紧是否正常。",
     code: "4.2",
@@ -162,7 +162,8 @@ const Form = () => {
   const currentDate = new Date();
   // 使用ref数组来管理所有上传输入
   const uploadInputRefs = useRef([]);
-
+  // 新增拖放相关状态
+  const [dragOverIndex, setDragOverIndex] = useState(null);
   // 初始化ref数组
   useEffect(() => {
     uploadInputRefs.current = uploadInputRefs.current.slice(
@@ -205,11 +206,31 @@ const Form = () => {
   };
 
   // 修改上传处理
-  const handlePhotoUpload = async (index, file) => {
-    const compressedImage = await compressImage(file);
+  const handlePhotoUpload = async (index, files) => {
     const newItems = [...inspectionItems];
-    newItems[index].photo.push(compressedImage);
+    const compressedImages = await Promise.all(
+      Array.from(files).map(file => compressImage(file))
+    );
+    newItems[index].photo.push(...compressedImages);
     setInspectionItems(newItems);
+  };
+  // 拖放事件处理函数
+  const handleDragOver = (index, e) => {
+    e.preventDefault();
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (index, e) => {
+    e.preventDefault();
+    setDragOverIndex(null);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handlePhotoUpload(index, e.dataTransfer.files);
+    }
   };
 
   // Handle form submission
@@ -321,7 +342,17 @@ const Form = () => {
             <Card
               key={index}
               variant="outlined"
-              sx={{ mb: 2, p: 2, display: "flex", alignItems: "center" }}
+              sx={{ 
+                mb: 2, 
+                p: 2, 
+                display: "flex", 
+                alignItems: "center",
+                border: dragOverIndex === index ? "2px dashed #1976d2" : "1px solid rgba(0, 0, 0, 0.12)",
+                backgroundColor: dragOverIndex === index ? "rgba(25, 118, 210, 0.08)" : "inherit"
+              }}
+              onDragOver={(e) => handleDragOver(index, e)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(index, e)}
             >
               <Grid container spacing={2} alignItems="center">
                 <Grid item xs={8}>
@@ -335,9 +366,7 @@ const Form = () => {
                     capture="camera"
                     style={{ display: "none" }}
                     id={`upload-photo-${index}`}
-                    onChange={(e) =>
-                      handlePhotoUpload(index, e.target.files[0])
-                    }
+                    onChange={(e) => handlePhotoUpload(index, e.target.files)} // 传递所有文件
                     ref={el => (uploadInputRefs.current[index] = el)}
                   />
                   <label htmlFor={`upload-photo-${index}`}>
@@ -346,6 +375,19 @@ const Form = () => {
                     </Button>
                   </label>
                 </Grid>
+                 {/* 添加拖放提示文字 */}
+                 {dragOverIndex === index && (
+                  <Grid item xs={12}>
+                    <Typography 
+                      variant="body2" 
+                      color="primary"
+                      align="center"
+                      sx={{ py: 2 }}
+                    >
+                      松开鼠标上传图片
+                    </Typography>
+                  </Grid>
+                )}
                 {/* Handle specific categories like Tire Pressure Check */}
                 {/* Render photos for other inspection items */}
                 {item?.photo && item.photo.length > 0 && (
